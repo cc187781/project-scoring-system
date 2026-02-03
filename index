@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>武汉G9906项目评分系统</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .role-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .judge-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .judge-link { padding: 10px; background: #f0f8ff; border: 1px solid #2c80b9; border-radius: 4px; text-align: center; }
+        .admin-section { background: #fff8f8; border-color: #d9534f; }
+        .password-input { margin: 10px 0; padding: 8px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>武汉G9906项目先进个人评分系统</h1>
+    
+    <div class="role-card">
+        <h2>👨‍⚖️ 评委评分入口</h2>
+        <p>每位评委请点击分配给您的专属链接进行评分：</p>
+        
+        <div class="judge-links">
+            <a href="judge.html?judge=1" class="judge-link">评委 1 号</a>
+            <a href="judge.html?judge=2" class="judge-link">评委 2 号</a>
+            <a href="judge.html?judge=3" class="judge-link">评委 3 号</a>
+            <a href="judge.html?judge=4" class="judge-link">评委 4 号</a>
+            <a href="judge.html?judge=5" class="judge-link">评委 5 号</a>
+            <a href="judge.html?judge=6" class="judge-link">评委 6 号</a>
+        </div>
+        
+        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+            <strong>注意：</strong>每位评委只能看到自己的评分页面，无法查看他人评分结果。
+        </p>
+    </div>
+    
+    <div class="role-card admin-section">
+        <h2>🔒 管理员结果查看入口</h2>
+        <p>请输入管理员密码查看所有评分结果：</p>
+        <input type="password" id="adminPassword" class="password-input" placeholder="输入管理员密码">
+        <button onclick="checkAdminPassword()">进入管理员后台</button>
+        <p id="passwordError" style="color: red; display: none;">密码错误！</p>
+    </div>
+    
+    <script>
+        function checkAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            // 默认密码为 "admin123"，实际使用时请修改
+            if (password === 'admin123') {
+                window.location.href = 'admin.html';
+            } else {
+                document.getElementById('passwordError').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
