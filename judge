@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>评委评分页面</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 10px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .judge-info { background: #e8f4fc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #2c80b9; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #2c80b9; color: white; padding: 12px; text-align: center; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .score-input { width: 60px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .score-input:focus { border-color: #2c80b9; outline: none; box-shadow: 0 0 5px rgba(44, 128, 185, 0.3); }
+        .btn { padding: 10px 20px; background: #2c80b9; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px 5px; }
+        .btn:hover { background: #1a5f8e; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219653; }
+        .instructions { background: #fff8e1; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="judge-info">
+            <h2><i class="fas fa-user-tie"></i> 评委评分系统</h2>
+            <p id="judgeIdentifier">正在识别评委身份...</p>
+            <p>请对以下项目成员进行评分，评分范围为1-5分（5分最高）</p>
+        </div>
+        
+        <div class="instructions">
+            <h4><i class="fas fa-info-circle"></i> 评分标准：</h4>
+            <p><strong>工作成果（40分）</strong>：1分-严重滞后，2分-部分未完成，3分-符合要求，4分-超额完成，5分-创新突破</p>
+            <p><strong>工作积极性（20分）</strong>：1分-消极被动，2分-需要督促，3分-按要求完成，4分-主动工作，5分-积极创新</p>
+            <p><strong>工作能力（20分）</strong>：1分-无法胜任，2分-能力不足，3分-基本胜任，4分-技能良好，5分-专业精湛</p>
+            <p><strong>团队精神（20分）</strong>：1分-影响团队，2分-偶尔配合，3分-配合工作，4分-良好协作，5分-带动团队</p>
+        </div>
+        
+        <table id="scoreTable">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>姓名</th>
+                    <th>任职岗位</th>
+                    <th>工作成果<br>(1-5分)</th>
+                    <th>工作积极性<br>(1-5分)</th>
+                    <th>工作能力<br>(1-5分)</th>
+                    <th>团队精神<br>(1-5分)</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- 数据通过JavaScript加载 -->
+            </tbody>
+        </table>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn btn-success" onclick="submitAllScores()">
+                <i class="fas fa-paper-plane"></i> 提交全部评分
+            </button>
+            <button class="btn" onclick="saveLocal()">
+                <i class="fas fa-save"></i> 暂存评分
+            </button>
+            <button class="btn" onclick="clearScores()">
+                <i class="fas fa-redo"></i> 重置评分
+            </button>
+        </div>
+        
+        <div id="submitMessage" style="display: none; margin-top: 20px; padding: 15px; background: #d4edda; color: #155724; border-radius: 5px; text-align: center;">
+            <i class="fas fa-check-circle"></i> 评分提交成功！感谢您的参与。
+        </div>
+    </div>
+    
+    <script>
+        // 获取评委编号
+        const urlParams = new URLSearchParams(window.location.search);
+        const judgeId = urlParams.get('judge') || 'unknown';
+        document.getElementById('judgeIdentifier').innerHTML = `<strong>评委编号：</strong> ${judgeId} 号评委`;
+        
+        // 原始人员数据
+        const staffData = [
+            { id: 1, name: "胡彬", position: "常务副经理" },
+            { id: 2, name: "张建新", position: "项目总工" },
+            { id: 3, name: "闫家岭", position: "副经理" },
+            { id: 4, name: "朱玉永", position: "副经理" },
+            { id: 5, name: "柴诚杰", position: "副经理" },
+            { id: 6, name: "梁会朋", position: "工程部长" },
+            { id: 7, name: "袁玉勇", position: "测量班长" },
+            { id: 8, name: "马奔", position: "征拆部长" },
+            { id: 9, name: "熊波", position: "安全部长" },
+            { id: 10, name: "王吉东", position: "质量部长" },
+            { id: 11, name: "卢景召", position: "计合部长" },
+            { id: 12, name: "马昆仑", position: "物资部长" },
+            { id: 13, name: "苏悦栋", position: "财务部长" },
+            { id: 14, name: "丁晓宁", position: "项目经理助理" },
+            { id: 15, name: "郭飞", position: "部员" },
+            { id: 16, name: "包景瑞", position: "部员" },
+            { id: 17, name: "庄代宝", position: "部员" },
+            { id: 18, name: "熊鸿博", position: "部员" },
+            { id: 19, name: "姜仁建", position: "部员" },
+            { id: 20, name: "马从原", position: "部员" },
+            { id: 21, name: "槐少波", position: "部员" },
+            { id: 22, name: "李现光", position: "部员" },
+            { id: 23, name: "王少雄", position: "部员" }
+        ];
+        
+        // 初始化表格
+        function initTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            // 尝试从本地加载已保存的评分
+            const savedScores = JSON.parse(localStorage.getItem(`judge_${judgeId}_scores`) || '{}');
+            
+            staffData.forEach(person => {
+                const row = document.createElement('tr');
+                const saved = savedScores[person.id] || {};
+                
+                row.innerHTML = `
+                    <td>${person.id}</td>
+                    <td><strong>${person.name}</strong></td>
+                    <td>${person.position}</td>
+                    <td><input type="number" min="1" max="5" class="score-input" 
+                           data-person="${person.id}" data-type="result" 
+                           value="${saved.result || ''}" 
+                           onchange="validateScore(this)"></td>
+                    <td><input type="number" min="1" max="5" class="score-input" 
+                           data-person="${person.id}" data-type="enthusiasm" 
+                           value="${saved.enthusiasm || ''}"
+                           onchange="validateScore(this)"></td>
+                    <td><input type="number" min="1" max="5" class="score-input" 
+                           data-person="${person.id}" data-type="ability" 
+                           value="${saved.ability || ''}"
+                           onchange="validateScore(this)"></td>
+                    <td><input type="number" min="1" max="5" class="score-input" 
+                           data-person="${person.id}" data-type="teamwork" 
+                           value="${saved.teamwork || ''}"
+                           onchange="validateScore(this)"></td>
+                    <td><button class="btn" onclick="savePersonScore(${person.id})" style="padding: 5px 10px; font-size: 14px;">保存</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 验证分数范围
+        function validateScore(input) {
+            let value = parseInt(input.value);
+            if (isNaN(value)) return;
+            if (value < 1) input.value = 1;
+            if (value > 5) input.value = 5;
+        }
+        
+        // 保存单个人评分
+        function savePersonScore(personId) {
+            const inputs = document.querySelectorAll(`.score-input[data-person="${personId}"]`);
+            const scores = {};
+            
+            inputs.forEach(input => {
+                scores[input.dataset.type] = parseInt(input.value) || 0;
+            });
+            
+            // 保存到本地存储
+            const allScores = JSON.parse(localStorage.getItem(`judge_${judgeId}_scores`) || '{}');
+            allScores[personId] = scores;
+            localStorage.setItem(`judge_${judgeId}_scores`, JSON.stringify(allScores));
+            
+            alert(`已保存 ${staffData.find(p => p.id === personId).name} 的评分`);
+        }
+        
+        // 暂存所有评分
+        function saveLocal() {
+            const allScores = {};
+            
+            staffData.forEach(person => {
+                const inputs = document.querySelectorAll(`.score-input[data-person="${person.id}"]`);
+                const scores = {};
+                
+                inputs.forEach(input => {
+                    scores[input.dataset.type] = parseInt(input.value) || 0;
+                });
+                
+                allScores[person.id] = scores;
+            });
+            
+            localStorage.setItem(`judge_${judgeId}_scores`, JSON.stringify(allScores));
+            alert('所有评分已暂存到本地！');
+        }
+        
+        // 提交评分到服务器（模拟）
+        function submitAllScores() {
+            // 收集所有评分
+            const allScores = {};
+            let hasEmpty = false;
+            
+            staffData.forEach(person => {
+                const inputs = document.querySelectorAll(`.score-input[data-person="${person.id}"]`);
+                const scores = {};
+                
+                inputs.forEach(input => {
+                    const value = parseInt(input.value);
+                    if (isNaN(value) || value < 1) {
+                        hasEmpty = true;
+                        input.style.borderColor = 'red';
+                    } else {
+                        input.style.borderColor = '#ccc';
+                        scores[input.dataset.type] = value;
+                    }
+                });
+                
+                allScores[person.id] = scores;
+            });
+            
+            if (hasEmpty) {
+                alert('请完成所有评分后再提交！');
+                return;
+            }
+            
+            // 在实际应用中，这里应该发送到服务器
+            // 模拟提交
+            const submission = {
+                judgeId: judgeId,
+                timestamp: new Date().toISOString(),
+                scores: allScores
+            };
+            
+            // 保存到本地存储（模拟服务器存储）
+            localStorage.setItem(`judge_${judgeId}_submission`, JSON.stringify(submission));
+            
+            // 显示成功消息
+            document.getElementById('submitMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('submitMessage').innerHTML += '<p>页面将在5秒后关闭...</p>';
+                setTimeout(() => window.close(), 5000);
+            }, 1000);
+            
+            console.log('评分已提交：', submission);
+        }
+        
+        // 重置评分
+        function clearScores() {
+            if (confirm('确定要重置所有评分吗？')) {
+                localStorage.removeItem(`judge_${judgeId}_scores`);
+                initTable();
+            }
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', initTable);
+    </script>
+</body>
+</html>
